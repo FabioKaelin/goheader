@@ -21,4 +21,4 @@ spec:
       path: "/"
     readinessProbe:
       path: "/"
-  host: "goheader.fabkli.ch"
+  host: "goheader.dev.fabkli.ch"

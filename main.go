@@ -37,15 +37,15 @@ func main() {
 
 func handler(c *gin.Context) {
 	outputString := ""
-	outputString += fmt.Sprintf("c.Request.RemoteAddr: %s\n", c.Request.RemoteAddr)
-	outputString += fmt.Sprintf("c.RemoteIP() %s\n", c.RemoteIP())
-	outputString += fmt.Sprintf("c.Request.Proto %s\n", c.Request.Proto)
-	outputString += fmt.Sprintf("c.Request.URL.Scheme %s\n", c.Request.URL.Scheme)
-	outputString += fmt.Sprintf("c.Request.Method %s\n", c.Request.Method)
-	outputString += fmt.Sprintf("c.Request.URL %s\n", c.Request.URL)
-	outputString += fmt.Sprintf("c.Request.URL.Query() %v\n", c.Request.URL.Query())
-	outputString += fmt.Sprintf("c.Request.ContentLength %d\n", c.Request.ContentLength)
-	outputString += fmt.Sprintf("c.ContentType() %s\n", c.ContentType())
+	outputString += fmt.Sprintf("c.Request.RemoteAddr: '%s'\n", c.Request.RemoteAddr)
+	outputString += fmt.Sprintf("c.RemoteIP(): '%s'\n", c.RemoteIP())
+	outputString += fmt.Sprintf("c.Request.Proto: '%s'\n", c.Request.Proto)
+	outputString += fmt.Sprintf("c.Request.URL.Scheme: '%s'\n", c.Request.URL.Scheme)
+	outputString += fmt.Sprintf("c.Request.Method: '%s'\n", c.Request.Method)
+	outputString += fmt.Sprintf("c.Request.URL: '%s'\n", c.Request.URL)
+	outputString += fmt.Sprintf("c.Request.URL.Query(): '%v'\n", c.Request.URL.Query())
+	outputString += fmt.Sprintf("c.Request.ContentLength: '%d'\n", c.Request.ContentLength)
+	outputString += fmt.Sprintf("c.ContentType(): '%s'\n", c.ContentType())
 	outputString += fmt.Sprintln("\nHeaders:")
 	for k, v := range c.Request.Header {
 		outputString += fmt.Sprintf("%s: %v\n", k, v)
