@@ -1,72 +1,75 @@
 package main
 
 import (
-	"crypto/rand"
 	"fmt"
-	"log"
+	"goheader/pkg/logger"
 	"net/http"
-	"time"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-
 	r := gin.Default()
-	r.GET("/", handler)
 
-	goheaderGroup := r.Group("/goheader")
-	{
-		goheaderGroup.Any("", handler)
-		goheaderGroup.POST("/upload", uploadHandler)
-	}
-
-	gonourlGroup := r.Group("/gonourl")
-	{
-		gonourlGroup.Any("", handler)
-		gonourlGroup.POST("/upload", uploadHandler)
-	}
+	r.Any("/*any", func(c *gin.Context) {
+		path := c.Request.URL.Path
+		if strings.HasPrefix(path, "/goheader") {
+			if path == "/goheader/upload" && c.Request.Method == "POST" {
+				uploadHandler(c)
+			} else {
+				handler(c)
+			}
+		} else if strings.HasPrefix(path, "/gonourl") {
+			if path == "/gonourl/upload" && c.Request.Method == "POST" {
+				uploadHandler(c)
+			} else {
+				handler(c)
+			}
+		} else {
+			handler(c)
+		}
+	})
 
 	fmt.Println("Started 8000")
 	r.Run("0.0.0.0:8000")
 }
 
-// handler echoes the HTTP request.
 func handler(c *gin.Context) {
-	c.String(http.StatusOK, "%s %s %s\n", c.Request.Method, c.Request.URL, c.Request.Proto)
+	outputString := ""
+	outputString += fmt.Sprintf("c.Request.RemoteAddr: %s\n", c.Request.RemoteAddr)
+	outputString += fmt.Sprintf("c.RemoteIP() %s\n", c.RemoteIP())
+	outputString += fmt.Sprintf("c.Request.Proto %s\n", c.Request.Proto)
+	outputString += fmt.Sprintf("c.Request.URL.Scheme %s\n", c.Request.URL.Scheme)
+	outputString += fmt.Sprintf("c.Request.Method %s\n", c.Request.Method)
+	outputString += fmt.Sprintf("c.Request.URL %s\n", c.Request.URL)
+	outputString += fmt.Sprintf("c.Request.URL.Query() %v\n", c.Request.URL.Query())
+	outputString += fmt.Sprintf("c.Request.ContentLength %d\n", c.Request.ContentLength)
+	outputString += fmt.Sprintf("c.ContentType() %s\n", c.ContentType())
+	outputString += fmt.Sprintln("\nHeaders:")
 	for k, v := range c.Request.Header {
-		c.String(http.StatusOK, "Header[%q] = %q\n", k, v)
+		outputString += fmt.Sprintf("%s: %v\n", k, v)
 	}
-	c.String(http.StatusOK, "Host = %q\n", c.Request.Host)
-	c.String(http.StatusOK, "RemoteAddr = %q\n", c.Request.RemoteAddr)
-	if err := c.Request.ParseForm(); err != nil {
-		log.Print(err)
-	}
-	for k, v := range c.Request.Form {
-		c.String(http.StatusOK, "Form[%q] = %q\n", k, v)
-	}
-	now := time.Now().String()
-	fmt.Printf("%s | Request: %s %s %s\n", now, c.Request.Method, c.Request.URL, c.Request.Proto)
+
+	outputString += fmt.Sprintln("\nBody:")
+	body, _ := c.GetRawData()
+	outputString += fmt.Sprintf("%s\n", body)
+	c.String(http.StatusOK, outputString)
+	fmt.Println(outputString)
 }
 
 var MAX_UPLOAD_SIZE int64 = 1024 * 1024 * 1024 // 1GB
 
-func randomString(length int) string {
-	b := make([]byte, length+2)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)[2 : length+2]
-}
-
 func uploadHandler(c *gin.Context) {
-	requestIdentifier := randomString(2)
-	fmt.Println("-------------------New Request-------------------", requestIdentifier)
+	log := logger.CreateLogger()
+	fmt.Println("-------------------New Request-------------------", log.GetRequestID())
 
 	// 32 MB is the default used by FormFile()
 
 	multiPartFrom, err := c.MultipartForm()
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
-		fmt.Println(requestIdentifier, "Error:", err)
+		log.Println("Error:", err)
 		return
 	}
 	// Get a reference to the fileHeaders.
@@ -85,7 +88,7 @@ func uploadHandler(c *gin.Context) {
 			// before calling ParseMultipartForm()
 			if fileHeader.Size > MAX_UPLOAD_SIZE {
 				c.String(http.StatusBadRequest, "The uploaded image is too big: %s. Please use an image less than 1GB in size", fileHeader.Filename)
-				fmt.Println(requestIdentifier, "The uploaded image is too big: %s. Please use an image less than 1GB in size", fileHeader.Filename)
+				log.Println("The uploaded image is too big: %s. Please use an image less than 1GB in size", fileHeader.Filename)
 				return
 			}
 
@@ -93,7 +96,7 @@ func uploadHandler(c *gin.Context) {
 			file, err := fileHeader.Open()
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
-				fmt.Println(requestIdentifier, err)
+				log.Println(err)
 				return
 			}
 
@@ -103,18 +106,18 @@ func uploadHandler(c *gin.Context) {
 			_, err = file.Read(buff)
 			if err != nil {
 				c.String(http.StatusInternalServerError, err.Error())
-				fmt.Println(requestIdentifier, err)
+				log.Println(err)
 				return
 			}
 
 			buff = nil
 
 			// filetype := http.DetectContentType(buff)
-			// fmt.Println("Name:", fileHeader.Filename)
-			// fmt.Println("Size:", fileHeader.Size)
-			// fmt.Println("Header:", fileHeader.Header)
-			// fmt.Println("Type:", filetype)
-			// fmt.Println(".....")
+			// log.Println("Name:", fileHeader.Filename)
+			// log.Println("Size:", fileHeader.Size)
+			// log.Println("Header:", fileHeader.Header)
+			// log.Println("Type:", filetype)
+			// log.Println(".....")
 			// filetype := http.DetectContentType(buff)
 			// if filetype != "image/jpeg" && filetype != "image/png" {
 			// 	http.Error(w, "The provided file format is not allowed. Please upload a JPEG or PNG image", http.StatusBadRequest)
@@ -149,7 +152,7 @@ func uploadHandler(c *gin.Context) {
 		}
 	}
 	c.String(http.StatusOK, "Upload successful")
-	fmt.Println(requestIdentifier, "Upload successful")
+	log.Println("Upload successful")
 
 	// fmt.Fprintf(w, "Upload successful")
 }
