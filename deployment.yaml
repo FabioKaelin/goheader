@@ -80,7 +80,8 @@ spec:
   #   # optional
   #   certificates:
   #     # certificate name in the key vault
-  #   - test-certificate
+  #   - name: test-certificate
+  #     format: pem # (optional) will default to pem
 
   # define the readonly root filesystem security context
   # optional
