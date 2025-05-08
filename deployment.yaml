@@ -6,7 +6,7 @@ metadata:
   name: "{{ .APMID }}-{{ .Stage }}-{{ .Component }}"
 spec:
   # define where you application binaries are located.
-  applicationImage: "{{ .Registry }}/{{ .APMID }}/{{ .Component }}{{ if .Tag }}:{{ .Tag }}{{ end }}{{ if .Digest }}@{{ .Digest }}{{ end }}"
+  applicationImage: "{{ .Registry }}/{{ .APMID }}/goheader{{ if .Tag }}:{{ .Tag }}{{ end }}{{ if .Digest }}@{{ .Digest }}{{ end }}"
 
   # swiss re application specific information
   swissre:
@@ -42,7 +42,7 @@ spec:
 
   # define the context root of your app
   # only supports one level
-  path: /{{ .Component }}
+  path: /goheader
 
   # define application access properties
   # optional, if no gateway present app will be accessible within namespace only.
