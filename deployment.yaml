@@ -42,7 +42,8 @@ spec:
 
   # define the context root of your app
   # only supports one level
-  path: /goheader
+  # path: /goheader
+  path: /{{ .Component }}
 
   # define application access properties
   # optional, if no gateway present app will be accessible within namespace only.
